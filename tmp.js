@@ -1,4 +1,10 @@
-var _ = require("ramda");
+const _ = require("ramda");
+
+// var add = function(x) {
+//   return function(y) {
+//     return x + y;
+//   };
+// };
 
 const add = x => y => x + y;
 

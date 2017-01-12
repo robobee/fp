@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: Droid Serif; }
+      h1, h2, h3 {
+        font-family: Yanone Kaffeesatz;
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: Ubuntu Mono; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Intro to Functional programming in JS
+
+---
+
+class: center, middle
+
+# Pure Happiness with Pure functions
+
+---
+
+# Pure function
+
+A pure function is a function that, given the same input, will always return the same output and does not have any observable side effect.
+
+---
+
+# Slice vs Splice
+
+```javascript
+var xs = [1, 2, 3, 4, 5];
+
+// pure
+xs.slice(0, 3);
+//=> [1, 2, 3]
+
+xs.slice(0, 3);
+//=> [1, 2, 3]
+
+xs.slice(0, 3);
+//=> [1, 2, 3]
+
+
+// impure
+xs.splice(0, 3);
+//=> [1, 2, 3]
+
+xs.splice(0, 3);
+//=> [4, 5]
+
+xs.splice(0, 3);
+//=> []
+```
+
+---
+
+# Another example
+
+```javascript
+// impure
+var minimum = 21;
+
+var checkAge = function(age) {
+  return age >= minimum;
+};
+
+
+// pure
+var checkAge = function(age) {
+  var minimum = 21;
+  return age >= minimum;
+};
+```
+
+- checkAge depends on system state which increases the cognitive load
+- this reliance upon state is one of the largest contributors to system complexity
+  http://www.curtclifton.net/storage/papers/MoseleyMarks06a.pdf
+
+---
+
+# Can also make minimum immutable
+
+```javascript
+var immutableState = Object.freeze({
+  minimum: 21,
+});
+```
+- preserves the purity as the state will never change
+
+---
+
+# Examples of side effects
+
+- changing the file system
+
+- inserting a record into a database
+
+- making an http call
+
+- mutations
+
+- printing to the screen / logging
+
+- obtaining user input
+
+- querying the DOM
+
+- accessing system state
+
+---
+
+# The case for purity: Cacheable
+
+```javascript
+var squareNumber = memoize(function(x) {
+  return x * x;
+});
+
+squareNumber(4);
+//=> 16
+
+squareNumber(4); // returns cache for input 4
+//=> 16
+
+squareNumber(5);
+//=> 25
+
+squareNumber(5); // returns cache for input 5
+//=> 25
+
+var memoize = function(f) {
+  var cache = {};
+
+  return function() {
+    var arg_str = JSON.stringify(arguments);
+    cache[arg_str] = cache[arg_str] || f.apply(f, arguments);
+    return cache[arg_str];
+  };
+};
+```
+---
+
+# The case for purity: Cacheable
+
+```javascript
+var pureHttpCall = memoize(function(url, params) {
+  return function() {
+    return $.getJSON(url, params);
+  };
+});
+```
+
+- can transform some impure functions into pure ones by delaying evaluation
+
+- we don't actually make the http call - we instead return a function that will do so when called
+---
+
+# The case for purity: Portable / Self-Documenting
+
+```javascript
+//impure
+var signUp = function(attrs) {
+  var user = saveUser(attrs);
+  welcomeUser(user);
+};
+
+var saveUser = function(attrs) {
+    var user = Db.save(attrs);
+    ...
+};
+
+var welcomeUser = function(user) {
+    Email(user, ...);
+    ...
+};
+
+```
+---
+
+# The case for purity: Portable / Self-Documenting
+
+```javascript
+//pure
+var signUp = function(Db, Email, attrs) {
+  return function() {
+    var user = saveUser(Db, attrs);
+    welcomeUser(Email, user);
+  };
+};
+
+var saveUser = function(Db, attrs) {
+    ...
+};
+
+var welcomeUser = function(Email, user) {
+    ...
+};
+```
+---
+
+# The case for purity: Testable
+
+- Give Input
+- Assert Output
+- Profit
+
+---
+
+# The case for purity: Reasonable
+
+- Referential transparency - a spot of code is referentially transparent when it can be substituted for its evaluated value without changing the behavior of the program.
+
+---
+
+# The case for purity: Parallel Code
+
+- We can run any pure function in parallel since it does not need access to shared memory and it cannot, by definition, have a race condition due to some side effect.
+
+---
+
+class: center, middle
+
+# Currying
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
